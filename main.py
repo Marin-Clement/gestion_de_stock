@@ -1,17 +1,18 @@
-import mysql.connector
 import csv
 import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
+from tkinter import ttk
+
+import mysql.connector
 
 
 class Application:
     def __init__(self, master):
         self.mydb = mysql.connector.connect(
-          host="localhost",
-          user="root",
-          password="Minecraft01@",
-          database="boutique"
+            host="localhost",
+            user="root",
+            password="Minecraft01@",
+            database="boutique"
         )
 
         self.my_cursor = self.mydb.cursor()
@@ -41,7 +42,7 @@ class Application:
         edit_button.pack(expand=True)
 
         category_buttons_frame = tk.LabelFrame(self.master, text="Catégorie", padx=5, pady=5)
-        category_buttons_frame.pack(side="left",padx=10, pady=10, fill="y", expand=True)
+        category_buttons_frame.pack(side="left", padx=10, pady=10, fill="y", expand=True)
 
         delete_cat_button = tk.Button(category_buttons_frame, text="Supprimer catégorie", command=self.delete_category)
         delete_cat_button.pack()
@@ -49,7 +50,8 @@ class Application:
         export_button_frame = tk.LabelFrame(self.master, text="Exporter", padx=5, pady=5)
         export_button_frame.pack(side="left", padx=10, pady=10, fill="y", expand=True)
 
-        export_to_csv_button = tk.Button(export_button_frame, text="Exporter vers CSV", command=lambda: self.export_csv("produit.csv"))
+        export_to_csv_button = tk.Button(export_button_frame, text="Exporter vers CSV",
+                                         command=lambda: self.export_csv("produit.csv"))
         export_to_csv_button.pack()
 
         # Load the products from the database
@@ -71,10 +73,10 @@ class Application:
             product = (row[0], row[1], row[2], row[3], row[4], categorie)
             try:
                 self.tree.insert("", "end", values=(
-                product[0], product[1], product[2], product[3], product[4], product[5][1]))
+                    product[0], product[1], product[2], product[3], product[4], product[5][1]))
             except:
                 self.tree.insert("", "end", values=(
-                product[0], product[1], product[2], product[3], product[4], "None"))
+                    product[0], product[1], product[2], product[3], product[4], "None"))
 
     def add_product(self):
         # Create a new window to add a product
@@ -202,7 +204,8 @@ class Application:
         save_button = tk.Button(edit_window, text="Enregistrer",
                                 command=lambda: self.save_edited_product(product_id, nom_entry.get(),
                                                                          description_entry.get(), prix_entry.get(),
-                                                                         quantite_entry.get(), categorie_box.get(), edit_window))
+                                                                         quantite_entry.get(), categorie_box.get(),
+                                                                         edit_window))
         save_button.pack()
 
     def save_edited_product(self, product_id, nom, description, prix, quantite, categorie_nom, window):
@@ -277,7 +280,7 @@ class Application:
                                 command=lambda: self.save_category(nom_entry.get(), add_window))
         save_button.pack()
 
-    def save_category(self, nom , window):
+    def save_category(self, nom, window):
         # Insert the new category into the database
         self.my_cursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (nom,))
         self.mydb.commit()
@@ -320,7 +323,7 @@ class Application:
         rows = self.my_cursor.fetchall()
         return rows
 
-    def export_csv(self,filename):
+    def export_csv(self, filename):
 
         # Fetch the data from the database
         data = self.my_cursor.fetchall()
