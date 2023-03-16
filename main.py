@@ -14,22 +14,6 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 
-class Category:
-    def __init__(self, id, nom):
-        self.id = id
-        self.nom = nom
-
-
-class Product:
-    def __init__(self, id, nom, description, prix, quantite, categorie):
-        self.id = id
-        self.nom = nom
-        self.description = description
-        self.prix = prix
-        self.quantite = quantite
-        self.categorie = categorie
-
-
 class Application:
     def __init__(self, master):
         self.master = master
@@ -86,13 +70,13 @@ class Application:
         # Populate the treeview with the products
         for row in rows:
             categorie = self.get_categorie_by_id(row[5])
-            product = Product(row[0], row[1], row[2], row[3], row[4], categorie)
+            product = (row[0], row[1], row[2], row[3], row[4], categorie)
             try:
                 self.tree.insert("", "end", values=(
-                product.id, product.nom, product.description, product.prix, product.quantite, product.categorie.nom))
+                product[0], product[1], product[2], product[3], product[4], product[5][1]))
             except:
                 self.tree.insert("", "end", values=(
-                product.id, product.nom, product.description, product.prix, product.quantite, "None"))
+                product[0], product[1], product[2], product[3], product[4], "None"))
 
     def add_product(self):
         # Create a new window to add a product
@@ -140,12 +124,12 @@ class Application:
             mycursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
             mydb.commit()
             categorie_id = mycursor.lastrowid
-            categorie = Category(categorie_id, categorie_nom)
+            categorie = (categorie_id, categorie_nom)
 
         # Insert the new product into the database
         mycursor.execute(
             "INSERT INTO produit (nom, description, prix, quantite, id_categorie) VALUES (%s, %s, %s, %s, %s)",
-            (nom, description, prix, quantite, categorie.id))
+            (nom, description, prix, quantite, categorie[0]))
         mydb.commit()
 
         # Close the add window and reload the products
@@ -180,7 +164,7 @@ class Application:
         mycursor.execute("SELECT * FROM produit WHERE id = %s", (product_id,))
         row = mycursor.fetchone()
         categorie = self.get_categorie_by_id(row[5])
-        product = Product(row[0], row[1], row[2], row[3], row[4], categorie)
+        product = (row[0], row[1], row[2], row[3], row[4], categorie)
 
         # Create a new window to edit the product
         edit_window = tk.Toplevel(self.master)
@@ -190,25 +174,25 @@ class Application:
         nom_label = tk.Label(edit_window, text="Nom:")
         nom_label.pack()
         nom_entry = tk.Entry(edit_window)
-        nom_entry.insert(0, product.nom)
+        nom_entry.insert(0, product[1])
         nom_entry.pack()
 
         description_label = tk.Label(edit_window, text="Description:")
         description_label.pack()
         description_entry = tk.Entry(edit_window)
-        description_entry.insert(0, product.description)
+        description_entry.insert(0, product[2])
         description_entry.pack()
 
         prix_label = tk.Label(edit_window, text="Prix:")
         prix_label.pack()
         prix_entry = tk.Entry(edit_window)
-        prix_entry.insert(0, product.prix)
+        prix_entry.insert(0, product[3])
         prix_entry.pack()
 
         quantite_label = tk.Label(edit_window, text="Quantité:")
         quantite_label.pack()
         quantite_entry = tk.Entry(edit_window)
-        quantite_entry.insert(0, product.quantite)
+        quantite_entry.insert(0, product[4])
         quantite_entry.pack()
 
         categorie_label = tk.Label(edit_window, text="Catégorie:")
@@ -230,12 +214,12 @@ class Application:
             mycursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
             mydb.commit()
             categorie_id = mycursor.lastrowid
-            categorie = Category(categorie_id, categorie_nom)
+            categorie = (categorie_id, categorie_nom)
 
         # Update the product in the database
         mycursor.execute(
             "UPDATE produit SET nom = %s, description = %s, prix = %s, quantite = %s, id_categorie = %s WHERE id = %s",
-            (nom, description, prix, quantite, categorie.id, product_id))
+            (nom, description, prix, quantite, categorie[0], product_id))
         mydb.commit()
 
         # Close the edit window and reload the products
@@ -249,7 +233,7 @@ class Application:
             mycursor.execute("SELECT * FROM categorie WHERE id = %s", (categorie_id,))
             row = mycursor.fetchone()
             if row is not None:
-                return Category(row[0], row[1])
+                return (row[0], row[1])
             else:
                 return None
         except:
@@ -261,7 +245,7 @@ class Application:
             mycursor.execute("SELECT * FROM categorie WHERE nom = %s", (categorie_nom,))
             row = mycursor.fetchone()
             if row is not None:
-                return Category(row[0], row[1])
+                return (row[0], row[1])
             else:
                 return None
         except:
