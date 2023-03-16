@@ -4,18 +4,17 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
-mydb = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="Minecraft01@",
-  database="boutique"
-)
-
-mycursor = mydb.cursor()
-
 
 class Application:
     def __init__(self, master):
+        self.mydb = mysql.connector.connect(
+          host="localhost",
+          user="root",
+          password="Minecraft01@",
+          database="boutique"
+        )
+
+        self.my_cursor = self.mydb.cursor()
         self.master = master
         self.master.title("Gestion de stock")
         self.master.geometry("1440x600")
@@ -50,8 +49,7 @@ class Application:
         export_button_frame = tk.LabelFrame(self.master, text="Exporter", padx=5, pady=5)
         export_button_frame.pack(side="left", padx=10, pady=10, fill="y", expand=True)
 
-
-        export_to_csv_button = tk.Button(export_button_frame, text="Exporter vers CSV", command=lambda : self.export_csv("produit.csv"))
+        export_to_csv_button = tk.Button(export_button_frame, text="Exporter vers CSV", command=lambda: self.export_csv("produit.csv"))
         export_to_csv_button.pack()
 
         # Load the products from the database
@@ -64,8 +62,8 @@ class Application:
             self.tree.delete(record)
 
         # Fetch the products from the database
-        mycursor.execute("SELECT * FROM produit")
-        rows = mycursor.fetchall()
+        self.my_cursor.execute("SELECT * FROM produit")
+        rows = self.my_cursor.fetchall()
 
         # Populate the treeview with the products
         for row in rows:
@@ -121,16 +119,16 @@ class Application:
         categorie = self.get_categorie_by_nom(categorie_nom)
         print(categorie)
         if categorie is None:
-            mycursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
-            mydb.commit()
-            categorie_id = mycursor.lastrowid
+            self.my_cursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
+            self.mydb.commit()
+            categorie_id = self.my_cursor.lastrowid
             categorie = (categorie_id, categorie_nom)
 
         # Insert the new product into the database
-        mycursor.execute(
+        self.my_cursor.execute(
             "INSERT INTO produit (nom, description, prix, quantite, id_categorie) VALUES (%s, %s, %s, %s, %s)",
             (nom, description, prix, quantite, categorie[0]))
-        mydb.commit()
+        self.mydb.commit()
 
         # Close the add window and reload the products
         messagebox.showinfo("Succès", "Le produit a été ajouté avec succès.")
@@ -148,8 +146,8 @@ class Application:
         if not confirmation:
             return
         # Delete the product from the database
-        mycursor.execute("DELETE FROM produit WHERE id = %s", (product_id,))
-        mydb.commit()
+        self.my_cursor.execute("DELETE FROM produit WHERE id = %s", (product_id,))
+        self.mydb.commit()
 
         # Reload the products
         self.load_products()
@@ -161,8 +159,8 @@ class Application:
         product_id = values[0]
 
         # Get the existing product details from the database
-        mycursor.execute("SELECT * FROM produit WHERE id = %s", (product_id,))
-        row = mycursor.fetchone()
+        self.my_cursor.execute("SELECT * FROM produit WHERE id = %s", (product_id,))
+        row = self.my_cursor.fetchone()
         categorie = self.get_categorie_by_id(row[5])
         product = (row[0], row[1], row[2], row[3], row[4], categorie)
 
@@ -211,16 +209,16 @@ class Application:
         # Check if the category already exists, otherwise create a new one
         categorie = self.get_categorie_by_nom(categorie_nom)
         if categorie is None:
-            mycursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
-            mydb.commit()
-            categorie_id = mycursor.lastrowid
+            self.my_cursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
+            self.mydb.commit()
+            categorie_id = self.my_cursor.lastrowid
             categorie = (categorie_id, categorie_nom)
 
         # Update the product in the database
-        mycursor.execute(
+        self.my_cursor.execute(
             "UPDATE produit SET nom = %s, description = %s, prix = %s, quantite = %s, id_categorie = %s WHERE id = %s",
             (nom, description, prix, quantite, categorie[0], product_id))
-        mydb.commit()
+        self.mydb.commit()
 
         # Close the edit window and reload the products
         messagebox.showinfo("Succès", "Le produit a été modifié avec succès.")
@@ -230,8 +228,8 @@ class Application:
     def get_categorie_by_id(self, categorie_id):
         # Fetch a category from the database by ID
         try:
-            mycursor.execute("SELECT * FROM categorie WHERE id = %s", (categorie_id,))
-            row = mycursor.fetchone()
+            self.my_cursor.execute("SELECT * FROM categorie WHERE id = %s", (categorie_id,))
+            row = self.my_cursor.fetchone()
             if row is not None:
                 return (row[0], row[1])
             else:
@@ -242,8 +240,8 @@ class Application:
     def get_categorie_by_nom(self, categorie_nom):
         # Fetch a category from the database by name
         try:
-            mycursor.execute("SELECT * FROM categorie WHERE nom = %s", (categorie_nom,))
-            row = mycursor.fetchone()
+            self.my_cursor.execute("SELECT * FROM categorie WHERE nom = %s", (categorie_nom,))
+            row = self.my_cursor.fetchone()
             if row is not None:
                 return (row[0], row[1])
             else:
@@ -256,8 +254,8 @@ class Application:
         self.tree_categories.delete(*self.tree_categories.get_children())
 
         # Fetch the categories from the database
-        mycursor.execute("SELECT * FROM categorie")
-        rows = mycursor.fetchall()
+        self.my_cursor.execute("SELECT * FROM categorie")
+        rows = self.my_cursor.fetchall()
 
         # Insert the categories into the treeview
         for row in rows:
@@ -281,8 +279,8 @@ class Application:
 
     def save_category(self, nom , window):
         # Insert the new category into the database
-        mycursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (nom,))
-        mydb.commit()
+        self.my_cursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (nom,))
+        self.mydb.commit()
 
         # Close the add window and reload the categories
         messagebox.showinfo("Succès", "La catégorie a été ajoutée avec succès.")
@@ -306,38 +304,39 @@ class Application:
         self.load_categories()
 
     def remove_category(self, nom, window):
-        mycursor.execute("DELETE FROM categorie WHERE nom = %s", (nom,))
-        mydb.commit()
+        self.my_cursor.execute("DELETE FROM categorie WHERE nom = %s", (nom,))
+        self.mydb.commit()
         messagebox.showinfo("Succès", "La catégorie a été supprimée avec succès.")
         self.load_categories()
         window.destroy()
 
     def get_categories(self):
-        mycursor.execute("SELECT nom FROM categorie")
-        rows = mycursor.fetchall()
+        self.my_cursor.execute("SELECT nom FROM categorie")
+        rows = self.my_cursor.fetchall()
         return rows
 
     def get_all_products(self):
-        mycursor.execute("SELECT * FROM produit")
-        rows = mycursor.fetchall()
+        self.my_cursor.execute("SELECT * FROM produit")
+        rows = self.my_cursor.fetchall()
         return rows
 
     def export_csv(self,filename):
 
         # Fetch the data from the database
-        data = mycursor.fetchall()
+        data = self.my_cursor.fetchall()
 
         # Write the data to a CSV file
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             # Write the header row
-            writer.writerow([i[0] for i in mycursor.description])
+            writer.writerow([i[0] for i in self.my_cursor.description])
             # Write the data rows
             for row in data:
                 writer.writerow(row)
         messagebox.showinfo("Succès", "Les données ont été exportées avec succès.")
 
 
+# Run the application
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Gestion de stock")
