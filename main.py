@@ -15,7 +15,7 @@ class Application:
 
         # Create a treeview to display the products
         self.tree = ttk.Treeview(self.master, columns=("id", "nom", "description", "prix", "quantite", "categorie"),
-                                 show="headings")
+        show="headings")
         [self.tree.heading(col, text=text) for col, text in
          zip(("id", "nom", "description", "prix", "quantite", "categorie"),
              ("ID", "Nom", "Description", "Prix", "Quantité", "Catégorie"))]
@@ -29,6 +29,7 @@ class Application:
 
         # Category buttons frame
         category_buttons_frame = tk.LabelFrame(self.master, text="Catégorie", padx=5, pady=5)
+        tk.Button(category_buttons_frame, text="Ajouter catégorie", command=self.add_category).pack()
         tk.Button(category_buttons_frame, text="Supprimer catégorie", command=self.delete_category).pack()
         category_buttons_frame.pack(side="left", padx=10, pady=10, fill="y", expand=True)
 
@@ -69,6 +70,10 @@ class Application:
         tk.Button(add_window, text="Enregistrer", command=save_product).pack()
 
     def save_product(self, nom, description, prix, quantite, categorie_nom, window):
+        # if caterorie_nom is not in the database, add it
+        if not self.get_categorie_by_nom(categorie_nom):
+            self.my_cursor.execute("INSERT INTO categorie (nom) VALUES (%s)", (categorie_nom,))
+            self.mydb.commit()
         categorie = self.get_categorie_by_nom(categorie_nom)
         categorie_id = self.my_cursor.lastrowid if categorie is None else categorie[0]
 
@@ -149,7 +154,7 @@ class Application:
         # Fetch a category from the database by name
         self.my_cursor.execute("SELECT * FROM categorie WHERE nom = %s", (categorie_nom,))
         row = self.my_cursor.fetchone()
-        return row[0], row[1] if row else None
+        return (row[0], row[1]) if row else None
 
     def add_category(self):
         add_window = tk.Toplevel(self.master)
